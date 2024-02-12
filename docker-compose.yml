@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   prometheus:
     image: prom/prometheus:v2.36.2
@@ -14,6 +14,15 @@ services:
       - prometheus
       - node_exporter
     restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == leader
+    labels:
+      - "com.galasec.description=Prometheus Server"
+      - "com.galasec.service=prometheus"
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
@@ -33,6 +42,11 @@ services:
     networks:
       - node_exporter
     restart: unless-stopped
+    deploy:
+      mode: global
+    labels:
+      - "com.galasec.description=Node Exporter"
+      - "com.galasec.service=node-exporter"
 
   grafana:
     image: grafana/grafana:10.3.1
@@ -47,6 +61,15 @@ services:
       - prometheus
     networks:
       - prometheus
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == leader
+    labels:
+      - "com.galasec.description=Grafana Dashboard"
+      - "com.galasec.service=grafana"
 
 volumes:
   prometheus_data:
